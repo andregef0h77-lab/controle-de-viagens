@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f0c040">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viagens">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>Controle de Viagens</title>
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--card:#1e2335;--accent:#f0c040;--accent2:#3dd68c;--danger:#ff5f5f;--text:#e8ecf4;--muted:#7a82a0;--border:#2a3050;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;overscroll-behavior:none;}
+.header{background:var(--surface);border-bottom:2px solid var(--accent);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo .nome{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent);line-height:1;}
+.logo .motorista{font-size:13px;color:var(--text);font-weight:600;margin-top:2px;}
+.logo .registro{font-size:11px;color:var(--muted);}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:13px 18px;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.main{padding:16px;max-width:800px;margin:0 auto;padding-bottom:32px;}
+.section{display:none;}.section.active{display:block;}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:18px;}
+.form-card h2{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:420px){.form-row{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;}
+.form-group input{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:11px 13px;font-family:'IBM Plex Mono',monospace;font-size:15px;outline:none;transition:border-color 0.2s;width:100%;}
+.form-group input:focus{border-color:var(--accent);}
+.local-row{display:flex;gap:8px;}.local-row input{flex:1;}
+.locais-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;margin-bottom:4px;}
+.local-tag{background:var(--bg);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;transition:all 0.2s;}
+.local-tag:active{background:var(--accent);color:var(--bg);}
+.foto-section{margin:14px 0 12px;}
+.foto-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:8px;}
+.foto-btns{display:flex;gap:8px;margin-bottom:10px;}
+.foto-btn{flex:1;padding:13px 8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;text-align:center;font-family:'IBM Plex Sans',sans-serif;}
+.foto-btn.cam{border-color:var(--accent);color:var(--accent);}
+.foto-btn.cam:active{background:var(--accent);color:var(--bg);}
+.foto-btn.gal:active{background:var(--border);}
+.foto-preview-wrap{position:relative;display:none;border-radius:10px;overflow:hidden;margin-bottom:4px;}
+.foto-preview-wrap.show{display:block;}
+.foto-preview-wrap img{width:100%;max-height:200px;object-fit:cover;display:block;border-radius:10px;border:2px solid var(--accent);}
+.btn-rm-foto{position:absolute;top:8px;right:8px;background:var(--danger);color:white;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.btn-registrar{width:100%;background:var(--accent);color:var(--bg);border:none;border-radius:10px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;margin-top:6px;}
+.btn-registrar:active{opacity:0.85;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--accent);line-height:1;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px;}
+.trips-list{display:flex;flex-direction:column;gap:10px;}
+.trip-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;display:flex;align-items:center;gap:12px;animation:slideIn 0.3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.trip-num{background:var(--accent);color:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:17px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trip-info{flex:1;min-width:0;}
+.trip-time{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;}
+.trip-local{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trip-foto-thumb{width:44px;height:44px;object-fit:cover;border-radius:8px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;}
+.trip-foto-thumb:active{border-color:var(--accent);}
+.btn-del{background:none;border:1px solid var(--border);color:var(--danger);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:15px;flex-shrink:0;}
+.btn-del:active{background:var(--danger);color:white;}
+.empty-state{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty-state .icon{font-size:46px;margin-bottom:10px;}
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.filter-row input{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 13px;font-family:'IBM Plex Mono',monospace;font-size:14px;outline:none;flex:1;min-width:120px;}
+.filter-row input:focus{border-color:var(--accent);}
+.btn-filter{background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:10px 14px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-family:'IBM Plex Sans',sans-serif;}
+.report-section{margin-bottom:24px;}
+.report-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.report-table{width:100%;border-collapse:collapse;}
+.report-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px;border-bottom:1px solid var(--border);}
+.report-table td{padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px;}
+.report-table .num-col{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);}
+.report-table .date-col{font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.badge{display:inline-block;background:var(--accent2);color:var(--bg);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:20px;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:100%;max-height:78vh;border-radius:12px;object-fit:contain;}
+.lb-close{background:var(--danger);color:white;border:none;border-radius:30px;padding:12px 32px;font-size:15px;cursor:pointer;font-weight:700;font-family:'IBM Plex Sans',sans-serif;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent2);color:var(--bg);padding:13px 24px;border-radius:40px;font-weight:700;font-size:14px;z-index:999;transition:transform 0.3s ease;pointer-events:none;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+.quick-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+.install-banner{display:none;background:linear-gradient(135deg,#1e2335,#2a3050);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;margin-bottom:16px;align-items:center;gap:12px;}
+.install-banner.show{display:flex;}
+.install-banner p{flex:1;font-size:13px;color:var(--text);}
+.install-banner strong{color:var(--accent);}
+.btn-install{background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:'IBM Plex Sans',sans-serif;}
+.storage-info{font-size:11px;color:var(--muted);text-align:center;padding:8px;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">
+    <div class="nome">🚛 VIAGENS</div>
+    <div class="motorista">André Luiz</div>
+    <div class="registro">Reg. Nº 10439</div>
+  </div>
+  <div style="text-align:right">
+    <div id="clockDisplay" style="font-family:'IBM Plex Mono',monospace;font-size:19px;color:var(--accent);font-weight:600;"></div>
+    <div id="dateDisplay" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('hoje',this)">📍 Hoje</button>
+  <button class="tab" onclick="showTab('historico',this)">📋 Histórico</button>
+  <button class="tab" onclick="showTab('relatorio',this)">📊 Relatório</button>
+  <button class="tab" onclick="showTab('backup',this)">💾 Backup</button>
+</div>
+<div class="main">
+  <div class="install-banner" id="installBanner">
+    <span style="font-size:28px">📲</span>
+    <p><strong>Instalar como App!</strong><br>Adicione à tela inicial para usar sem internet</p>
+    <button class="btn-install" onclick="instalarApp()">INSTALAR</button>
+    <button onclick="document.getElementById('installBanner').classList.remove('show')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px">✕</button>
+  </div>
+
+  <div class="section active" id="tab-hoje">
+    <div class="form-card">
+      <h2>Registrar Viagem</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Data</label><input type="date" id="inputData"></div>
+        <div class="form-group"><label>Horário</label><input type="time" id="inputHora"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Local / Destino</label>
+        <div class="local-row">
+          <input type="text" id="inputLocal" placeholder="Ex: PN do Feio, Vila Natal..." list="locaisSugest">
+          <datalist id="locaisSugest"></datalist>
+        </div>
+      </div>
+      <div class="quick-label">Locais rápidos:</div>
+      <div class="locais-list" id="locaisRapidos"></div>
+      <div class="foto-section">
+        <div class="foto-lbl">📷 Foto do material (opcional)</div>
+        <div class="foto-btns">
+          <button class="foto-btn cam" onclick="abrirCamera()">📷 Tirar Foto</button>
+          <button class="foto-btn gal" onclick="abrirGaleria()">🖼 Da Galeria</button>
+        </div>
+        <div class="foto-preview-wrap" id="fotoPreviewWrap">
+          <img id="fotoPreview" src="" alt="Foto">
+          <button class="btn-rm-foto" onclick="removerFoto()">✕ Remover</button>
+        </div>
+        <div class="storage-info" id="storageInfo"></div>
+      </div>
+      <button class="btn-registrar" onclick="registrarViagem()">✔ REGISTRAR VIAGEM</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Viagens Hoje</div></div>
+      <div class="stat-box"><div class="stat-num" id="statPrimeira">—</div><div class="stat-label">Primeira</div></div>
+      <div class="stat-box"><div class="stat-num" id="statUltima">—</div><div class="stat-label">Última</div></div>
+    </div>
+    <div class="section-title">Viagens de Hoje</div>
+    <div class="trips-list" id="listaHoje"></div>
+  </div>
+
+  <div class="section" id="tab-historico">
+    <div class="form-card">
+      <h2>Filtrar por Período</h2>
+      <div class="filter-row">
+        <input type="date" id="filtroInicio"><input type="date" id="filtroFim">
+        <button class="btn-filter" onclick="filtrarHistorico()">Filtrar</button>
+        <button class="btn-filter" style="background:var(--border);color:var(--text)" onclick="limparFiltro()">Limpar</button>
+      </div>
+    </div>
+    <div class="trips-list" id="listaHistorico"></div>
+  </div>
+
+  <div class="section" id="tab-relatorio">
+    <div class="form-card" style="margin-bottom:18px">
+      <h2>Período do Relatório</h2>
+      <div class="filter-row">
+        <input type="date" id="relInicio"><input type="date" id="relFim">
+        <button class="btn-filter" onclick="gerarRelatorio()">Gerar</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-filter" style="background:var(--border);color:var(--text);font-size:11px" onclick="setRelSemana()">Esta semana</button>
+        <button class="btn-filter" style="background:var(--border);color:var(--text);font-size:11px" onclick="setRelMes()">Este mês</button>
+        <button class="btn-filter" style="background:var(--border);color:var(--text);font-size:11px" onclick="setRelMesPassado()">Mês passado</button>
+        <button class="btn-filter" style="background:#e53935;color:white;font-size:11px" onclick="exportarPDF()">📄 PDF</button>
+      </div>
+    </div>
+    <div id="conteudoRelatorio"></div>
+  </div>
+
+  <div class="section" id="tab-backup">
+    <div class="form-card">
+      <h2>💾 Backup dos Dados</h2>
+      <div id="storageStatus" style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--muted);"></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn-registrar" style="background:var(--accent2)" onclick="exportarBackup()">⬇ BAIXAR BACKUP</button>
+        <button class="btn-registrar" style="background:var(--border);color:var(--text)" onclick="document.getElementById('importFile').click()">⬆ RESTAURAR BACKUP</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarBackup(event)">
+      </div>
+    </div>
+    <div class="form-card" style="border-color:#e5393530">
+      <h2 style="color:#e53935">⚠ Zona de Perigo</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Apaga TUDO incluindo fotos. Faça backup antes!</p>
+      <button class="btn-registrar" style="background:#e53935" onclick="apagarTudo()">🗑 APAGAR TODOS OS DADOS</button>
+    </div>
+    <div class="form-card"><h2>📊 Resumo</h2><div id="resumoBackup"></div></div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="fecharLightbox()">
+  <img id="lightboxImg" src="" alt="Foto">
+  <button class="lb-close" onclick="fecharLightbox()">✕ Fechar</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const MOTORISTA='André Luiz', REGISTRO='10439';
+
+// ====== IndexedDB — armazena fotos sem limite de 5MB ======
+const DB_NAME='viagens_db', DB_VER=1;
+let db=null;
+
+function abrirDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('viagens')) d.createObjectStore('viagens',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('fotos')) d.createObjectStore('fotos',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('config')) d.createObjectStore('config',{keyPath:'key'});
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=e=>rej(e);
+  });
+}
+
+function dbPut(store,obj){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(obj).onsuccess=e=>res(e.target.result);tx.onerror=e=>rej(e);});}
+function dbGet(store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(key);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+function dbGetAll(store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).getAll();req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+function dbDelete(store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(key).onsuccess=()=>res();tx.onerror=e=>rej(e);});}
+function dbClear(store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).clear().onsuccess=()=>res();tx.onerror=e=>rej(e);});}
+
+// ====== Config/Locais no localStorage (pequenos) ======
+function getLocais(){return JSON.parse(localStorage.getItem('locaisFavoritos')||'["PN do Feio","Vila Natal","Portilhos"]');}
+function saveLocais(l){localStorage.setItem('locaisFavoritos',JSON.stringify(l));}
+
+// ====== FOTO ======
+let fotoBlob=null, fotoPreviewURL=null;
+
+function abrirCamera(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';inp.setAttribute('capture','environment');inp.style.display='none';
+  document.body.appendChild(inp);
+  inp.addEventListener('change',function(){
+    if(this.files&&this.files[0]) processarFoto(this.files[0]);
+    setTimeout(()=>document.body.removeChild(inp),1000);
+  });
+  inp.click();
+}
+
+function abrirGaleria(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';inp.style.display='none';
+  document.body.appendChild(inp);
+  inp.addEventListener('change',function(){
+    if(this.files&&this.files[0]) processarFoto(this.files[0]);
+    setTimeout(()=>document.body.removeChild(inp),1000);
+  });
+  inp.click();
+}
+
+function processarFoto(file){
+  // Comprime para max 1200px e salva como Blob (muito mais eficiente que base64)
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement('canvas');
+      const maxW=1200;
+      let w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(blob=>{
+        fotoBlob=blob;
+        if(fotoPreviewURL) URL.revokeObjectURL(fotoPreviewURL);
+        fotoPreviewURL=URL.createObjectURL(blob);
+        document.getElementById('fotoPreview').src=fotoPreviewURL;
+        document.getElementById('fotoPreviewWrap').classList.add('show');
+        const kb=Math.round(blob.size/1024);
+        document.getElementById('storageInfo').textContent=`📁 Foto: ${kb} KB`;
+        showToast('📷 Foto carregada! '+kb+' KB');
+      },'image/jpeg',0.80);
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerFoto(){
+  fotoBlob=null;
+  if(fotoPreviewURL){URL.revokeObjectURL(fotoPreviewURL);fotoPreviewURL=null;}
+  document.getElementById('fotoPreview').src='';
+  document.getElementById('fotoPreviewWrap').classList.remove('show');
+  document.getElementById('storageInfo').textContent='';
+}
+
+async function abrirLightbox(id){
+  const fotoRec=await dbGet('fotos',id);
+  if(!fotoRec){showToast('Foto não encontrada','#ff5f5f');return;}
+  const url=URL.createObjectURL(fotoRec.blob);
+  const img=document.getElementById('lightboxImg');
+  img.src=url;
+  img.onload=()=>{};
+  document.getElementById('lightbox').classList.add('open');
+  // revoke when closed
+  document.getElementById('lightbox')._revokeUrl=url;
+}
+function fecharLightbox(){
+  const lb=document.getElementById('lightbox');
+  if(lb._revokeUrl){URL.revokeObjectURL(lb._revokeUrl);lb._revokeUrl=null;}
+  document.getElementById('lightboxImg').src='';
+  lb.classList.remove('open');
+}
+
+// ====== PWA Install ======
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('installBanner').classList.add('show');
+});
+function instalarApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('installBanner').classList.remove('show');});
+}
+
+// ====== INIT ======
+async function init(){
+  await abrirDB();
+  const now=new Date();
+  document.getElementById('inputData').value=toInputDate(now);
+  document.getElementById('inputHora').value=toInputTime(now);
+  renderLocaisRapidos();
+  await renderHoje();
+  startClock();
+  atualizarStorageInfo();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+}
+
+async function atualizarStorageInfo(){
+  try{
+    const viagens=await dbGetAll('viagens');
+    const fotos=await dbGetAll('fotos');
+    let totalFotos=0;
+    fotos.forEach(f=>{if(f.blob)totalFotos+=f.blob.size;});
+    const mb=(totalFotos/1024/1024).toFixed(1);
+    const el=document.getElementById('storageStatus');
+    if(el) el.innerHTML=`📦 ${viagens.length} viagens registradas &nbsp;|&nbsp; 📷 ${fotos.length} fotos (${mb} MB)<br><span style="font-size:11px;color:var(--accent2)">✅ Armazenamento IndexedDB — sem limite de 5MB!</span>`;
+  }catch(e){}
+}
+
+function toInputDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function toInputTime(d){return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function formatDate(s){if(!s)return'';const[y,m,d]=s.split('-');return d+'/'+m+'/'+y;}
+
+function startClock(){
+  const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  function tick(){const n=new Date();document.getElementById('clockDisplay').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');document.getElementById('dateDisplay').textContent=days[n.getDay()]+', '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();}
+  tick();setInterval(tick,1000);
+}
+
+function showTab(name,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='historico')renderHistorico();
+  if(name==='relatorio'){setRelMes();gerarRelatorio();}
+  if(name==='backup'){renderResumoBackup();atualizarStorageInfo();}
+}
+
+function renderLocaisRapidos(){
+  const locais=getLocais();
+  document.getElementById('locaisRapidos').innerHTML=locais.map(l=>`<span class="local-tag" onclick="selecionarLocal('${l}')">${l}</span>`).join('');
+  document.getElementById('locaisSugest').innerHTML=locais.map(l=>`<option value="${l}">`).join('');
+}
+function selecionarLocal(l){document.getElementById('inputLocal').value=l;}
+
+async function registrarViagem(){
+  const data=document.getElementById('inputData').value;
+  const hora=document.getElementById('inputHora').value;
+  const local=document.getElementById('inputLocal').value.trim();
+  if(!data||!hora){showToast('⚠ Preencha data e horário!','#ff5f5f');return;}
+  const id=Date.now();
+  const viagem={id,data,hora,local:local||'Sem local',temFoto:!!fotoBlob};
+  await dbPut('viagens',viagem);
+  if(fotoBlob) await dbPut('fotos',{id,blob:fotoBlob});
+  if(local){const locais=getLocais();if(!locais.includes(local)){locais.push(local);saveLocais(locais);renderLocaisRapidos();}}
+  document.getElementById('inputHora').value=toInputTime(new Date());
+  document.getElementById('inputLocal').value='';
+  removerFoto();
+  await renderHoje();
+  showToast('✔ Viagem registrada!');
+}
+
+async function renderHoje(){
+  const today=document.getElementById('inputData').value||toInputDate(new Date());
+  const all=(await dbGetAll('viagens')).filter(v=>v.data===today).sort((a,b)=>a.hora.localeCompare(b.hora));
+  document.getElementById('statTotal').textContent=all.length;
+  document.getElementById('statPrimeira').textContent=all.length?all[0].hora:'—';
+  document.getElementById('statUltima').textContent=all.length?all[all.length-1].hora:'—';
+  const lista=document.getElementById('listaHoje');
+  if(!all.length){lista.innerHTML='<div class="empty-state"><div class="icon">🚛</div><p>Nenhuma viagem hoje.</p></div>';return;}
+  lista.innerHTML=all.map((v,i)=>`
+    <div class="trip-item">
+      <div class="trip-num">${i+1}</div>
+      <div class="trip-info"><div class="trip-time">${v.hora}</div><div class="trip-local">📍 ${v.local}</div></div>
+      ${v.temFoto?`<img class="trip-foto-thumb" id="thumb-${v.id}" src="" onclick="abrirLightbox(${v.id})" title="Ver foto">` :''}
+      <button class="btn-del" onclick="deletarViagem(${v.id})">✕</button>
+    </div>`).join('');
+  // Carrega thumbs de forma async
+  for(const v of all){
+    if(v.temFoto){
+      const fotoRec=await dbGet('fotos',v.id);
+      if(fotoRec){const el=document.getElementById('thumb-'+v.id);if(el){const url=URL.createObjectURL(fotoRec.blob);el.src=url;}}
+    }
+  }
+}
+
+async function deletarViagem(id){
+  if(!confirm('Remover esta viagem?'))return;
+  await dbDelete('viagens',id);
+  await dbDelete('fotos',id);
+  await renderHoje();
+  showToast('Removida.','#ff5f5f');
+}
+
+async function renderHistorico(filtroIni, filtroFim){
+  let dados=await dbGetAll('viagens');
+  if(filtroIni)dados=dados.filter(v=>v.data>=filtroIni);
+  if(filtroFim)dados=dados.filter(v=>v.data<=filtroFim);
+  const grupos={};dados.forEach(v=>{if(!grupos[v.data])grupos[v.data]=[];grupos[v.data].push(v);});
+  const datas=Object.keys(grupos).sort((a,b)=>b.localeCompare(a));
+  const lista=document.getElementById('listaHistorico');
+  if(!datas.length){lista.innerHTML='<div class="empty-state"><div class="icon">📋</div><p>Nenhuma viagem.</p></div>';return;}
+  lista.innerHTML=datas.map(data=>{
+    const vs=grupos[data].sort((a,b)=>a.hora.localeCompare(b.hora));
+    return `<div style="margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--accent2);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+        ${formatDate(data)} <span style="font-size:13px;font-family:'IBM Plex Sans';color:var(--muted)">— ${vs.length} viagem${vs.length>1?'ns':''}</span>
+      </div>
+      ${vs.map((v,i)=>`
+        <div class="trip-item">
+          <div class="trip-num">${i+1}</div>
+          <div class="trip-info"><div class="trip-time">${v.hora}</div><div class="trip-local">📍 ${v.local}</div></div>
+          ${v.temFoto?`<img class="trip-foto-thumb" id="thumb-${v.id}" src="" onclick="abrirLightbox(${v.id})">` :''}
+          <button class="btn-del" onclick="deletarViagem(${v.id}).then(()=>renderHistorico())">✕</button>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+  // Load thumbs
+  for(const data of datas){
+    for(const v of grupos[data]){
+      if(v.temFoto){
+        const fotoRec=await dbGet('fotos',v.id);
+        if(fotoRec){const el=document.getElementById('thumb-'+v.id);if(el){el.src=URL.createObjectURL(fotoRec.blob);}}
+      }
+    }
+  }
+}
+
+function filtrarHistorico(){renderHistorico(document.getElementById('filtroInicio').value,document.getElementById('filtroFim').value);}
+function limparFiltro(){document.getElementById('filtroInicio').value='';document.getElementById('filtroFim').value='';renderHistorico();}
+
+function setRelSemana(){const now=new Date(),day=now.getDay(),seg=new Date(now);seg.setDate(now.getDate()-(day===0?6:day-1));document.getElementById('relInicio').value=toInputDate(seg);document.getElementById('relFim').value=toInputDate(now);}
+function setRelMes(){const now=new Date();document.getElementById('relInicio').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('relFim').value=toInputDate(now);}
+function setRelMesPassado(){const now=new Date(),m=now.getMonth()===0?12:now.getMonth(),y=now.getMonth()===0?now.getFullYear()-1:now.getFullYear(),ld=new Date(y,m,0).getDate();document.getElementById('relInicio').value=y+'-'+String(m).padStart(2,'0')+'-01';document.getElementById('relFim').value=y+'-'+String(m).padStart(2,'0')+'-'+ld;}
+
+async function gerarRelatorio(){
+  const ini=document.getElementById('relInicio').value,fim=document.getElementById('relFim').value;
+  let dados=await dbGetAll('viagens');
+  if(ini)dados=dados.filter(v=>v.data>=ini);
+  if(fim)dados=dados.filter(v=>v.data<=fim);
+  const el=document.getElementById('conteudoRelatorio');
+  if(!dados.length){el.innerHTML='<div class="empty-state"><div class="icon">📊</div><p>Nenhuma viagem no período.</p></div>';return;}
+  const grupos={};dados.forEach(v=>{if(!grupos[v.data])grupos[v.data]=[];grupos[v.data].push(v);});
+  const datas=Object.keys(grupos).sort(),total=dados.length,media=(total/datas.length).toFixed(1);
+  const porLocal={};dados.forEach(v=>{porLocal[v.local]=(porLocal[v.local]||0)+1;});
+  const locaisOrd=Object.entries(porLocal).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+      <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-label">Total Viagens</div></div>
+      <div class="stat-box"><div class="stat-num">${datas.length}</div><div class="stat-label">Dias Trabalhados</div></div>
+      <div class="stat-box"><div class="stat-num">${media}</div><div class="stat-label">Média / Dia</div></div>
+    </div>
+    <div class="report-section">
+      <div class="report-title">Viagens por Dia</div>
+      <table class="report-table">
+        <thead><tr><th>Data</th><th>Dia</th><th>Qtd</th><th>Horários</th><th>Locais</th></tr></thead>
+        <tbody>
+        ${datas.map(data=>{
+          const vs=grupos[data].sort((a,b)=>a.hora.localeCompare(b.hora));
+          const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],[y,m,d]=data.split('-');
+          return`<tr><td class="date-col">${formatDate(data)}</td><td>${ds[new Date(y,m-1,d).getDay()]}</td><td class="num-col">${vs.length}</td><td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)">${vs.map(v=>v.hora).join(' · ')}</td><td style="font-size:11px;color:var(--muted)">${[...new Set(vs.map(v=>v.local))].join(', ')}</td></tr>`;
+        }).join('')}
+        <tr style="background:rgba(240,192,64,0.08)"><td colspan="2" style="font-weight:700;color:var(--accent)">TOTAL</td><td class="num-col">${total}</td><td colspan="2"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-section">
+      <div class="report-title">Viagens por Local</div>
+      <table class="report-table">
+        <thead><tr><th>Local</th><th>Qtd</th><th>%</th></tr></thead>
+        <tbody>${locaisOrd.map(([local,qtd])=>`<tr><td>📍 ${local}</td><td class="num-col">${qtd}</td><td><span class="badge">${((qtd/total)*100).toFixed(0)}%</span></td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+async function exportarPDF(){
+  const ini=document.getElementById('relInicio').value,fim=document.getElementById('relFim').value;
+  const label=ini&&fim?`${formatDate(ini)} a ${formatDate(fim)}`:'Todos os dados';
+  let dados=await dbGetAll('viagens');
+  if(ini)dados=dados.filter(v=>v.data>=ini);
+  if(fim)dados=dados.filter(v=>v.data<=fim);
+  if(!dados.length){showToast('⚠ Nenhuma viagem!','#ff5f5f');return;}
+  showToast('⏳ Carregando fotos para PDF...');
+  const grupos={};dados.forEach(v=>{if(!grupos[v.data])grupos[v.data]=[];grupos[v.data].push(v);});
+  const datas=Object.keys(grupos).sort(),total=dados.length,media=(total/datas.length).toFixed(1);
+  const porLocal={};dados.forEach(v=>{porLocal[v.local]=(porLocal[v.local]||0)+1;});
+  const locaisOrd=Object.entries(porLocal).sort((a,b)=>b[1]-a[1]);
+  // Converte blobs para base64 para o PDF
+  const fotosB64={};
+  for(const v of dados){
+    if(v.temFoto){
+      const fotoRec=await dbGet('fotos',v.id);
+      if(fotoRec&&fotoRec.blob){
+        fotosB64[v.id]=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(fotoRec.blob);});
+      }
+    }
+  }
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório</title><style>body{font-family:Arial,sans-serif;color:#111;margin:0;padding:20px 24px;font-size:13px}.cab{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:10px;border-bottom:3px solid #c8a000;margin-bottom:16px}.cab-e .titulo{font-size:22px;font-weight:900;color:#333}.cab-e .motorista{font-size:16px;font-weight:700;color:#c8a000}.cab-e .reg{font-size:12px;color:#888}.cab-d{text-align:right}.cab-d .periodo{font-size:14px;font-weight:700;color:#333}.cab-d .gerado{font-size:11px;color:#888}.stats{display:flex;gap:12px;margin-bottom:18px}.stat{background:#f8f8f8;border-radius:8px;padding:12px 18px;flex:1;text-align:center;border-left:3px solid #c8a000}.stat .n{font-size:26px;font-weight:900;color:#c8a000;line-height:1}.stat .l{font-size:10px;text-transform:uppercase;color:#888;margin-top:3px}h2{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#555;border-bottom:2px solid #c8a000;padding-bottom:5px;margin:18px 0 10px}table{width:100%;border-collapse:collapse}th{background:#f5f5f5;padding:7px 8px;text-align:left;font-size:10px;text-transform:uppercase;color:#666}td{padding:8px;border-bottom:1px solid #eee;font-size:12px;vertical-align:middle}.num{font-size:18px;font-weight:900;color:#c8a000}.fotos{display:flex;flex-wrap:wrap;gap:4px}.fotos img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #ddd}.total-row{background:#fffde7;font-weight:700}.footer{margin-top:24px;color:#bbb;font-size:10px;text-align:center;border-top:1px solid #eee;padding-top:10px}</style></head><body>');
+  win.document.write(`<div class="cab"><div class="cab-e"><div class="titulo">🚛 Relatório de Viagens</div><div class="motorista">${MOTORISTA}</div><div class="reg">Registro Nº ${REGISTRO}</div></div><div class="cab-d"><div class="periodo">📅 ${label}</div><div class="gerado">Gerado em: ${new Date().toLocaleString('pt-BR')}</div></div></div>`);
+  win.document.write(`<div class="stats"><div class="stat"><div class="n">${total}</div><div class="l">Total de Viagens</div></div><div class="stat"><div class="n">${datas.length}</div><div class="l">Dias Trabalhados</div></div><div class="stat"><div class="n">${media}</div><div class="l">Média por Dia</div></div></div>`);
+  win.document.write('<h2>Viagens por Dia</h2><table><thead><tr><th>Data</th><th>Dia</th><th>Qtd</th><th>Horários</th><th>Locais</th><th>Fotos</th></tr></thead><tbody>');
+  for(const data of datas){
+    const vs=grupos[data].sort((a,b)=>a.hora.localeCompare(b.hora));
+    const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],[y,m,d]=data.split('-');
+    const fotos=vs.filter(v=>fotosB64[v.id]).map(v=>`<img src="${fotosB64[v.id]}">`).join('');
+    win.document.write(`<tr><td><strong>${formatDate(data)}</strong></td><td>${ds[new Date(y,m-1,d).getDay()]}</td><td class="num">${vs.length}</td><td style="color:#888;font-size:11px">${vs.map(v=>v.hora).join(' · ')}</td><td style="color:#888;font-size:11px">${[...new Set(vs.map(v=>v.local))].join(', ')}</td><td><div class="fotos">${fotos||'—'}</div></td></tr>`);
+  }
+  win.document.write(`<tr class="total-row"><td colspan="2"><strong>TOTAL GERAL</strong></td><td class="num">${total}</td><td colspan="3"></td></tr></tbody></table>`);
+  win.document.write('<h2>Viagens por Local</h2><table><thead><tr><th>Local</th><th>Qtd</th><th>%</th></tr></thead><tbody>');
+  locaisOrd.forEach(([local,qtd])=>win.document.write(`<tr><td>📍 ${local}</td><td class="num">${qtd}</td><td>${((qtd/total)*100).toFixed(0)}%</td></tr>`));
+  win.document.write(`</tbody></table><div class="footer">${MOTORISTA} | Reg. Nº ${REGISTRO} | Controle de Viagens</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+}
+
+async function exportarBackup(){
+  const viagens=await dbGetAll('viagens');
+  const fotos=await dbGetAll('fotos');
+  // Converte blobs para base64
+  const fotosB64=[];
+  for(const f of fotos){
+    if(f.blob){
+      const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(f.blob);});
+      fotosB64.push({id:f.id,data:b64});
+    }
+  }
+  const dados={viagens,fotos:fotosB64,locais:getLocais(),exportadoEm:new Date().toISOString(),versao:2};
+  const blob=new Blob([JSON.stringify(dados)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`viagens-backup-${toInputDate(new Date()).replace(/-/g,'')}.json`;a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Backup salvo com fotos!');
+}
+
+async function importarBackup(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const dados=JSON.parse(e.target.result);
+      if(!dados.viagens){showToast('⚠ Arquivo inválido!','#ff5f5f');return;}
+      if(!confirm(`Restaurar ${dados.viagens.length} viagens?`))return;
+      await dbClear('viagens');await dbClear('fotos');
+      for(const v of dados.viagens) await dbPut('viagens',v);
+      if(dados.fotos){
+        for(const f of dados.fotos){
+          const res=await fetch(f.data);const blob=await res.blob();
+          await dbPut('fotos',{id:f.id,blob});
+        }
+      }
+      if(dados.locais)saveLocais(dados.locais);
+      renderLocaisRapidos();await renderHoje();await renderResumoBackup();
+      showToast(`✔ ${dados.viagens.length} viagens restauradas!`);
+    }catch(err){showToast('⚠ Erro no arquivo!','#ff5f5f');}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+async function apagarTudo(){
+  if(!confirm('Apagar TUDO? Fotos também!'))return;
+  if(!confirm('Confirmar apagar tudo?'))return;
+  await dbClear('viagens');await dbClear('fotos');
+  await renderHoje();await renderResumoBackup();
+  showToast('Apagado.','#ff5f5f');
+}
+
+async function renderResumoBackup(){
+  const viagens=await dbGetAll('viagens');
+  const fotos=await dbGetAll('fotos');
+  const el=document.getElementById('resumoBackup');
+  if(!el)return;
+  if(!viagens.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nenhuma viagem ainda.</p>';return;}
+  const datas=[...new Set(viagens.map(v=>v.data))];
+  let totalFotos=0;fotos.forEach(f=>{if(f.blob)totalFotos+=f.blob.size;});
+  const mb=(totalFotos/1024/1024).toFixed(1);
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">
+    ${[['Total de viagens',viagens.length,'var(--accent)'],['Dias com registro',datas.length,'var(--accent)'],['Fotos salvas',fotos.length,'var(--accent2)']].map(([l,v,c])=>`
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted);font-size:13px">${l}</span>
+        <span style="font-family:'Bebas Neue';font-size:20px;color:${c}">${v}</span>
+      </div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--muted);font-size:13px">Espaço usado pelas fotos</span>
+      <span style="font-size:14px;color:var(--accent2)">${mb} MB</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--muted);font-size:13px">Primeiro registro</span>
+      <span style="font-size:14px">${formatDate([...datas].sort()[0])}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 0">
+      <span style="color:var(--muted);font-size:13px">Último registro</span>
+      <span style="font-size:14px">${formatDate([...datas].sort().pop())}</span>
+    </div>
+  </div>`;
+}
+
+function showToast(msg,cor){const t=document.getElementById('toast');t.textContent=msg;t.style.background=cor||'var(--accent2)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+init();
+</script>
+</body>
+</html>
